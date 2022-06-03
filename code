@@ -1,0 +1,57 @@
+import cv2
+import numpy as np
+
+
+video = cv2.VideoCapture("/Users/Ricky/OneDrive/Pictures/Saved Pictures/3686.mp4")
+
+while video.isOpened():
+   ret, frame = video.read()
+   font = cv2.FONT_HERSHEY_SIMPLEX
+   cap = cv2.VideoCapture('/Users/Ricky/OneDrive/Pictures/Saved Pictures/3686.mp4')
+   total = 0
+   while True:
+       total += 1
+       ret, vid = cap.read()
+       height,width = vid.shape[:2]
+       gray = cv2.cvtColor(vid, cv2.COLOR_BGR2GRAY)
+       blur = cv2.GaussianBlur(gray,(9,9),0)
+       edges = cv2.Canny(blur,20,50)
+       ROI= np.array([[(596,717),(834,717),(1020,1080),(355,1080)]], dtype= np.int32)
+       blank= np.zeros_like(edges)
+       region_of_interest= cv2.fillPoly(blank, ROI,255)
+       region_of_interest_image= cv2.bitwise_and(edges, region_of_interest)
+       cdstP = np.copy(region_of_interest_image)
+       linesP = cv2.HoughLinesP(region_of_interest_image, 1, np.pi / 100, 50, None, 50, 1000)
+
+       if linesP is not None:
+           for i in range(0, len(linesP)):
+               l = linesP[i][0]
+               cv2.line(vid, (l[0], l[1]), (l[2], l[3]), (0,0,255), 3, cv2.LINE_AA)
+               slope = (l[3]-l[1])/(l[2]-l[0])
+
+               if l[0]<400 and (l[0]+l[2])/2 >450:
+                   cv2.circle(vid, (1800,100), 9, (0,255,0), 10)
+               elif i<=2 and i>0 and slope > 10 and slope < 25:
+                   cv2.circle(vid, (1800,100), 9, (0,255,0), 10)
+               elif l[0]<650 and slope >= -0.1:
+                   cv2.circle(vid, (1800,100), 9, (0,255,0), 10)
+               elif l[2]-l[0]>100 and slope >= 2:
+                   cv2.circle(vid, (1800,100), 9, (0,255,255), 10)
+               elif l[0]<650 and slope >= -0.9 and slope<=-0.1:
+                    cv2.circle(vid, (1800,100), 9, (0,255,255), 10)
+
+
+
+       cv2.putText(vid,str(total),(50,50),font,1,(0,255,255),2,cv2.LINE_4)
+
+
+       cv2.imshow("Live", vid)
+       key = cv2.waitKey(1)
+       if key == ord("q"):
+           break
+
+
+
+video.release()
+
+
